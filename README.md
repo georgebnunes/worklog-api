@@ -20,6 +20,13 @@ manner, so you'll don't have to waste time building those weekly reports.
 - Gradle
 - PostgreSQL
 
+# Features
+
+- Sign In / Sign Up
+- Account management
+- User Profile
+- Make posts
+- Manage reports
 
 
 
