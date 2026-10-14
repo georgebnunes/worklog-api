@@ -1,3 +1,6 @@
 spring:
   application:
     name: worklogapi
+  flyway:
+    enable: true
+    baseline-on-migrate: true
