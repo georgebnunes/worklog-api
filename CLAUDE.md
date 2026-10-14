@@ -112,11 +112,17 @@ Complex workarounds: if a fix feels complex, stop and ask.
 
 ## Database
 
+### Postgres
+Install the PostgreSQL dependency and also the Spring JPA dependency.
+Set the placeholders inside resources/application.yaml for database server authentication.
+Those data will be informed afterward through a manual edit.
+
+### Flyway migrations
 Create migrations file using Flyway dependency.
 If you detect that there is not a table migration for that specific feature, 
 ask if you should create one.
 
 The migrations must be located on: resources/db/migration
-They must have a name starting with the version like `V1_`
+They must have a name starting with the version like `V{version}__description.sql`
 
 
