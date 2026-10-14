@@ -19,6 +19,7 @@ manner, so you'll don't have to waste time building those weekly reports.
 - Java 25
 - Gradle
 - PostgreSQL
+- Flyway (database migrations)
 
 # Endpoints
 
