@@ -20,14 +20,27 @@ manner, so you'll don't have to waste time building those weekly reports.
 - Gradle
 - PostgreSQL
 
-# Features
+# Endpoints
 
-- Sign In / Sign Up
-- Account management
-- User Profile
-- Make posts
-- Manage reports
+## Create account
+To create an account it is pretty straightforward, just pick a `username`, a `password`, an `email` and that its it.
+Of course, your password will be encrypted and the **email** is just for password recovery reasons.
 
+```
+curl -X POST http://localhost:8080/worklog-api/v1/accounts -d '{"username":"user1", "password":"pass123", "email":"bob@bob.com"}'
+```
 
+## Login
+Endpoint for login. It is all stateless, we will generate a JWT token with a refresh token.
 
+```
+curl -X POST http://localhost:8080/worklog-api/v1/auth -d '{"username":"user1", "password":"pass123"}'
+```
 
+## Register Work
+To register a log, you may call this endpoint on your client.
+The `content` field is a free text input with 140 characters maximum.
+
+```
+curl -X POST http://localhost:8080/worklog-api/v1/logs -d '{"userId":1, "content":"lorem ipsum dolor sit amet"}'
+```
