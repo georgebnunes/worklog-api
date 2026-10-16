@@ -126,3 +126,14 @@ The migrations must be located on: resources/db/migration
 They must have a name starting with the version like `V{version}__{description}.sql`
 
 
+### Tables
+The table's name must be in plural and in lowercase.
+Examples: "users", "logs", "registers", etc.
+
+All tables must have an integer column `id` as primary key with auto increment. 
+Use Postgres sequences for that.
+
+All tables must have datetime columns with timezone like `createdAt` and `updatedAt`. Remember to set the default
+value for these columns with the current server datetime right when an insert is performed.
+
+All tables must have a boolean column like `active` with default value `true`.
