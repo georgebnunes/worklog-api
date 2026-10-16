@@ -123,6 +123,6 @@ If you detect that there is not a table migration for that specific feature,
 ask if you should create one.
 
 The migrations must be located on: resources/db/migration
-They must have a name starting with the version like `V{version}__description.sql`
+They must have a name starting with the version like `V{version}__{description}.sql`
 
 
