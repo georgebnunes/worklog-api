@@ -31,6 +31,7 @@ No linter/formatter is configured.
 - Planned API base path is `/worklog-api/v1/` (e.g. `/accounts`, `/auth`, `/logs`); the README curl examples define the intended request shapes.
 - `.editorconfig`: LF line endings (enforced via `.gitattributes`), 4-space indent (2 for YAML), final newline. `.bat` files use CRLF.
 - Commit messages use a conventional-style prefix (`doc:`, `build:`, `feat:`, `test:`, `fix:`).
+- Password must be stored as encrypted. Choose an encryption algorithm for it.
 
 ### Java 25
 Records for value objects, sealed interfaces, pattern matching.
