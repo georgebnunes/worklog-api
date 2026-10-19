@@ -14,6 +14,7 @@ If the test already passes, STOP - something is wrong.
 
 ## GREEN - minimum code to pass
 Write the MINIMUM production code to make this one test pass.
+Add unit tests for it, we must hold at least 95% coverage in our code.
 Minimum means minimum:
 - No extra methods "While we're here"
 - No anticipating the next test
