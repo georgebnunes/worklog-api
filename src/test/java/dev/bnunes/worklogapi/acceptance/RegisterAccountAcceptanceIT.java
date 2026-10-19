@@ -60,4 +60,27 @@ class RegisterAccountAcceptanceIT {
                     .andExpect(jsonPath("$.emailConfirmed").doesNotExist());
         }
     }
+
+    @Nested
+    @DisplayName("Must reject a username or email that is already registered, ignoring case (409 Conflict).")
+    class DuplicateAccount {
+
+        @Test
+        @DisplayName("The one where `User3` is registered and `user3` is submitted. The result is 409.")
+        void usernameAlreadyRegisteredIgnoringCase() throws Exception {
+            mockMvc.perform(post(ACCOUNTS_PATH)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"username":"User3","password":"password123","email":"carol@carol.com"}
+                                    """))
+                    .andExpect(status().isCreated());
+
+            mockMvc.perform(post(ACCOUNTS_PATH)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"username":"user3","password":"password123","email":"dave@dave.com"}
+                                    """))
+                    .andExpect(status().isConflict());
+        }
+    }
 }
