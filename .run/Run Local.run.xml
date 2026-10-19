@@ -1,0 +1,18 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run Local" type="Application" factoryName="Application">
+    <option name="ALTERNATIVE_JRE_PATH" value="25 (WSL)" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <envs>
+      <env name="DB_HOST" value="localhost" />
+      <env name="DB_NAME" value="worklog_api" />
+      <env name="DB_PASSWORD" value="workl0g_123" />
+      <env name="DB_PORT" value="5432" />
+      <env name="DB_USERNAME" value="worklog_dev" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="dev.bnunes.worklogapi.WorklogapiApplication" />
+    <module name="worklogapi.main" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
