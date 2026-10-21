@@ -19,6 +19,11 @@ class AccountPersistenceAdapter implements AccountRepository {
     }
 
     @Override
+    public boolean existsByEmail(String email) {
+        return repository.existsByEmailIgnoreCase(email);
+    }
+
+    @Override
     public Account save(String username, String password, String email) {
         AccountEntity saved = repository.save(new AccountEntity(username, password, email));
         return new Account(saved.getId(), saved.getUsername(), saved.getEmail());

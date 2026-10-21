@@ -1,8 +1,11 @@
 package dev.bnunes.worklogapi.adapter.in.web;
 
 import dev.bnunes.worklogapi.application.port.in.CreateAccountUseCase;
+import dev.bnunes.worklogapi.domain.exception.EmailAlreadyRegisteredException;
+import dev.bnunes.worklogapi.domain.exception.UsernameAlreadyTakenException;
 import dev.bnunes.worklogapi.domain.model.Account;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +27,11 @@ class AccountController {
     AccountResponse create(@RequestBody CreateAccountRequest request) {
         Account account = createAccount.create(request.username(), request.password(), request.email());
         return new AccountResponse(account.id(), account.username(), account.email());
+    }
+
+    @ExceptionHandler({UsernameAlreadyTakenException.class, EmailAlreadyRegisteredException.class})
+    @ResponseStatus(HttpStatus.CONFLICT)
+    void duplicateAccount() {
     }
 
     record CreateAccountRequest(String username, String password, String email) {

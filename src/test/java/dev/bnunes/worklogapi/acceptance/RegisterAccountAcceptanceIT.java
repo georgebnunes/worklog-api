@@ -82,5 +82,23 @@ class RegisterAccountAcceptanceIT {
                                     """))
                     .andExpect(status().isConflict());
         }
+
+        @Test
+        @DisplayName("The one where `Erin@Erin.com` is registered and `erin@erin.com` is submitted under another username. The result is 409.")
+        void emailAlreadyRegisteredIgnoringCase() throws Exception {
+            mockMvc.perform(post(ACCOUNTS_PATH)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"username":"user4","password":"password123","email":"Erin@Erin.com"}
+                                    """))
+                    .andExpect(status().isCreated());
+
+            mockMvc.perform(post(ACCOUNTS_PATH)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"username":"user5","password":"password123","email":"erin@erin.com"}
+                                    """))
+                    .andExpect(status().isConflict());
+        }
     }
 }
