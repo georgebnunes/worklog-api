@@ -13,7 +13,7 @@ Login request:
 {"email":"bob@bob.com","password":"password123"}
 ```
 
-Login response `200 OK`, plus a `Set-Cookie: access_token=<jwt>` header:
+Login response `200 OK`:
 
 ```json
 {"token":"eyJhbGciOi...","expiresIn":1800,"refreshToken":"q3Vn2x..."}
@@ -25,13 +25,11 @@ Refresh request:
 {"refreshToken":"q3Vn2x..."}
 ```
 
-The refresh response has the same shape and cookie as login.
+The refresh response has the same shape as login.
 
 ## Divergences from the original story and README
 
-- The README logs in with `username`; this story uses `email`.
-- The sample password `pass123` is 7 characters, below the account minimum of 8. Login never applies registration length rules.
-- Protected endpoints take the JWT from the cookie or from a Bearer header, not from a header only.
+- Protected endpoints take the JWT from a Bearer header only.
 - The refresh exchange (`/auth/refresh`) is included, which the original story did not list.
 - Refresh tokens are stored (hashed); the JWT is not stored.
 - Brute-force protection (lockout or rate limiting) and logout are out of scope. Both are follow-up stories.
@@ -69,7 +67,7 @@ The last row shows that login does not check password length. A short wrong pass
 | active, email unconfirmed     | 200     |
 | inactive, correct credentials | 403     |
 
-No token, cookie or refresh token is issued for a 403.
+No token or refresh token is issued for a 403.
 
 ## Rule: Must issue a JWT signed with HS256 that identifies the account and expires 30 minutes after it is issued.
 
@@ -77,21 +75,13 @@ No token, cookie or refresh token is issued for a 403.
 - Counter-example: The one where the signing secret is missing or shorter than 32 bytes. The application refuses to start.
 - The secret comes from the `JWT_SECRET` environment variable, with a placeholder in `application.yaml` like the database settings.
 
-## Rule: Must also return the JWT in an HttpOnly cookie named `access_token`.
+## Rule: Must accept the JWT only from an `Authorization: Bearer` header on protected endpoints.
 
-- Example: The one where login succeeds. The response sets `access_token` with the same JWT: `HttpOnly`, `Secure`, `SameSite=Lax`, `Path=/worklog-api`, and `Max-Age=1800`.
-- Counter-example: The one where login fails. No cookie is set.
-- `Secure` is on by default and can be switched off for local HTTP development.
-
-## Rule: Must accept the JWT from the cookie or from an `Authorization: Bearer` header on protected endpoints.
-
-| cookie              | Bearer header | Outcome                            |
-|---------------------|---------------|------------------------------------|
-| valid               | none          | request is authenticated           |
-| none                | valid         | request is authenticated           |
-| valid               | other user's  | authenticated as the header's user |
-| none                | none          | 401                                |
-| expired or tampered | none          | 401                                |
+| Bearer header       | Outcome                  |
+|---------------------|--------------------------|
+| valid               | request is authenticated |
+| none                | 401                      |
+| expired or tampered | 401                      |
 
 An account deactivated after login keeps a working JWT, but protected endpoints still answer 403 for it, as in `register-log.md`.
 
@@ -102,14 +92,14 @@ An account deactivated after login keeps a working JWT, but protected endpoints 
 
 ## Rule: Must exchange a valid refresh token for a new JWT and a new refresh token, and stop the old one from working (rotation).
 
-| refresh token                          | Outcome                                                            |
-|----------------------------------------|--------------------------------------------------------------------|
-| valid, not used before                 | 200 with new JWT, `expiresIn`, new refresh token, and a new cookie |
-| already used (rotated out)             | 401                                                                |
-| expired (older than 7 days)            | 401                                                                |
-| unknown or tampered                    | 401                                                                |
-| valid, but the account is now inactive | 403                                                                |
-| missing or blank                       | 400                                                                |
+| refresh token                          | Outcome                                           |
+|----------------------------------------|---------------------------------------------------|
+| valid, not used before                 | 200 with new JWT, `expiresIn`, new refresh token  |
+| already used (rotated out)             | 401                                               |
+| expired (older than 7 days)            | 401                                               |
+| unknown or tampered                    | 401                                               |
+| valid, but the account is now inactive | 403                                               |
+| missing or blank                       | 400                                               |
 
 ## Rule: Must persist refresh tokens in a `refresh_tokens` table that follows the project conventions.
 

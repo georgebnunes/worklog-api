@@ -28,14 +28,15 @@ To create an account it is pretty straightforward, just pick a `username`, a `pa
 Of course, your password will be encrypted and the **email** is just for password recovery reasons.
 
 ```
-curl -X POST http://localhost:8080/worklog-api/v1/accounts -d '{"username":"user1", "password":"pass123", "email":"bob@bob.com"}'
+curl -X POST http://localhost:8080/worklog-api/v1/accounts -d '{"username":"user1", "password":"pass1234", "email":"bob@bob.com"}'
 ```
 
 ## Login
 Endpoint for login. It is all stateless, we will generate a JWT token with a refresh token.
+You log in with your `email` and `password`.
 
 ```
-curl -X POST http://localhost:8080/worklog-api/v1/auth -d '{"username":"user1", "password":"pass123"}'
+curl -X POST http://localhost:8080/worklog-api/v1/auth -d '{"email":"bob@bob.com", "password":"pass1234"}'
 ```
 
 ## Register Work
