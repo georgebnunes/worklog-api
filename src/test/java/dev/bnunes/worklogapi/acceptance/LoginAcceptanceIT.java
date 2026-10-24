@@ -65,6 +65,22 @@ class LoginAcceptanceIT {
         }
     }
 
+    @Nested
+    @DisplayName("Must reject wrong credentials with one identical answer (401), without revealing whether the email exists.")
+    class RejectWrongCredentials {
+
+        @Test
+        @DisplayName("The one where the email is unknown, whatever the password. The result is 401.")
+        void unknownEmail() throws Exception {
+            mockMvc.perform(post(AUTH_PATH)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"email":"nobody@nobody.com","password":"password123"}
+                                    """))
+                    .andExpect(status().isUnauthorized());
+        }
+    }
+
     private void register(String username, String password, String email) throws Exception {
         mockMvc.perform(post(ACCOUNTS_PATH)
                         .contentType(MediaType.APPLICATION_JSON)

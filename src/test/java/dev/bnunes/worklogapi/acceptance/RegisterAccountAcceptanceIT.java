@@ -7,8 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -22,6 +24,9 @@ class RegisterAccountAcceptanceIT {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Nested
     @DisplayName("Must create an account from `username`, `password` and `email`, and answer 201 with `id`, `username` and `email`.")
@@ -99,6 +104,29 @@ class RegisterAccountAcceptanceIT {
                                     {"username":"user5","password":"password123","email":"erin@erin.com"}
                                     """))
                     .andExpect(status().isConflict());
+        }
+    }
+
+    @Nested
+    @DisplayName("Must never store the password in plain text.")
+    class PasswordNeverStoredInPlainText {
+
+        @Test
+        @DisplayName("The one where a registration succeeds. The stored value is a salted hash that differs from the submitted password.")
+        void storedValueIsASaltedHash() throws Exception {
+            mockMvc.perform(post(ACCOUNTS_PATH)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"username":"user6","password":"password123","email":"heidi@heidi.com"}
+                                    """))
+                    .andExpect(status().isCreated());
+
+            String stored = jdbcTemplate.queryForObject(
+                    "SELECT password FROM accounts WHERE lower(email) = 'heidi@heidi.com'", String.class);
+
+            assertThat(stored)
+                    .isNotEqualTo("password123")
+                    .matches("^\\$2[aby]\\$\\d{2}\\$.{53}$");
         }
     }
 }

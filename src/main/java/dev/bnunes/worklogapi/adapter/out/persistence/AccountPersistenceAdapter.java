@@ -4,6 +4,8 @@ import dev.bnunes.worklogapi.application.port.out.AccountRepository;
 import dev.bnunes.worklogapi.domain.model.Account;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 class AccountPersistenceAdapter implements AccountRepository {
 
@@ -21,6 +23,12 @@ class AccountPersistenceAdapter implements AccountRepository {
     @Override
     public boolean existsByEmail(String email) {
         return repository.existsByEmailIgnoreCase(email);
+    }
+
+    @Override
+    public Optional<Account> findByEmail(String email) {
+        return repository.findByEmailIgnoreCase(email)
+                .map(entity -> new Account(entity.getId(), entity.getUsername(), entity.getEmail()));
     }
 
     @Override
