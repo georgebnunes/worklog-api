@@ -1,27 +1,33 @@
 package dev.bnunes.worklogapi.application.service;
 
 import dev.bnunes.worklogapi.application.port.in.AuthenticateAccountUseCase;
+import dev.bnunes.worklogapi.application.port.out.AccessTokenIssuer;
 import dev.bnunes.worklogapi.application.port.out.AccountRepository;
 import dev.bnunes.worklogapi.domain.exception.InvalidCredentialsException;
+import dev.bnunes.worklogapi.domain.model.Account;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
 
 @Service
 class AuthenticateAccountService implements AuthenticateAccountUseCase {
 
-    // Placeholders until the next rules drive account lookup, password check, JWT signing and refresh tokens.
-    private static final String TOKEN_PLACEHOLDER = "pending.jwt.signature";
+    private static final Duration TOKEN_LIFETIME = Duration.ofMinutes(30);
+    // Placeholder until the refresh token rule drives real issuance.
     private static final String REFRESH_TOKEN_PLACEHOLDER = "pending-refresh-token";
-    private static final int EXPIRES_IN_SECONDS = 1800;
 
     private final AccountRepository accounts;
+    private final AccessTokenIssuer accessTokenIssuer;
 
-    AuthenticateAccountService(AccountRepository accounts) {
+    AuthenticateAccountService(AccountRepository accounts, AccessTokenIssuer accessTokenIssuer) {
         this.accounts = accounts;
+        this.accessTokenIssuer = accessTokenIssuer;
     }
 
     @Override
     public AuthenticationResult authenticate(String email, String password) {
-        accounts.findByEmail(email).orElseThrow(InvalidCredentialsException::new);
-        return new AuthenticationResult(TOKEN_PLACEHOLDER, EXPIRES_IN_SECONDS, REFRESH_TOKEN_PLACEHOLDER);
+        Account account = accounts.findByEmail(email).orElseThrow(InvalidCredentialsException::new);
+        String token = accessTokenIssuer.issue(account, TOKEN_LIFETIME);
+        return new AuthenticationResult(token, (int) TOKEN_LIFETIME.toSeconds(), REFRESH_TOKEN_PLACEHOLDER);
     }
 }

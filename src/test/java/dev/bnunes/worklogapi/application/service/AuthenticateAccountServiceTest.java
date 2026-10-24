@@ -1,11 +1,13 @@
 package dev.bnunes.worklogapi.application.service;
 
 import dev.bnunes.worklogapi.application.port.in.AuthenticateAccountUseCase.AuthenticationResult;
+import dev.bnunes.worklogapi.application.port.out.AccessTokenIssuer;
 import dev.bnunes.worklogapi.application.port.out.AccountRepository;
 import dev.bnunes.worklogapi.domain.exception.InvalidCredentialsException;
 import dev.bnunes.worklogapi.domain.model.Account;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,11 +18,14 @@ import static org.mockito.Mockito.mock;
 class AuthenticateAccountServiceTest {
 
     private final AccountRepository accounts = mock(AccountRepository.class);
-    private final AuthenticateAccountService service = new AuthenticateAccountService(accounts);
+    private final AccessTokenIssuer accessTokenIssuer = mock(AccessTokenIssuer.class);
+    private final AuthenticateAccountService service = new AuthenticateAccountService(accounts, accessTokenIssuer);
 
     @Test
     void answersWithAJwtShapedTokenThatExpiresInThirtyMinutesAndARefreshToken() {
-        given(accounts.findByEmail("frank@frank.com")).willReturn(Optional.of(new Account(1, "frank", "frank@frank.com")));
+        Account frank = new Account(1, "frank", "frank@frank.com");
+        given(accounts.findByEmail("frank@frank.com")).willReturn(Optional.of(frank));
+        given(accessTokenIssuer.issue(frank, Duration.ofMinutes(30))).willReturn("a.b.c");
 
         AuthenticationResult result = service.authenticate("frank@frank.com", "password123");
 
