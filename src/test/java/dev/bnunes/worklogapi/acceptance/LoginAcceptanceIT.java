@@ -8,14 +8,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.matchesPattern;
@@ -38,6 +42,9 @@ class LoginAcceptanceIT {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Nested
     @DisplayName("Must authenticate an account from `email` and `password` and answer 200 with `token`, `expiresIn` and `refreshToken`.")
@@ -115,6 +122,61 @@ class LoginAcceptanceIT {
             assertThat(JsonPath.<Number>read(payload, "$.exp").longValue())
                     .isBetween(before.plusSeconds(1800).getEpochSecond(), after.plusSeconds(1800).getEpochSecond());
         }
+    }
+
+    @Nested
+    @DisplayName("Must issue an opaque refresh token that lives 7 days and is stored only as a hash.")
+    class IssueRefreshToken {
+
+        @Test
+        @DisplayName("The one where login succeeds. The response carries a random refresh token, and the database holds only its hash and its expiry (7 days after issue).")
+        void refreshTokenIsRandomAndStoredWithSevenDayExpiry() throws Exception {
+            String accountId = register("login4", "password123", "ivy@ivy.com");
+
+            Instant before = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+            String firstRefreshToken = loginForRefreshToken("ivy@ivy.com", "password123");
+            Instant after = Instant.now();
+            String secondRefreshToken = loginForRefreshToken("ivy@ivy.com", "password123");
+
+            assertThat(firstRefreshToken).isNotEqualTo(secondRefreshToken);
+
+            List<Map<String, Object>> rows = jdbcTemplate.queryForList(
+                    "SELECT \"tokenHash\", \"expiresAt\" FROM refresh_tokens WHERE \"accountId\" = ? ORDER BY id",
+                    Integer.parseInt(accountId));
+
+            assertThat(rows).hasSize(2);
+            Map<String, Object> firstRow = rows.getFirst();
+            assertThat(firstRow.get("tokenHash")).isNotEqualTo(firstRefreshToken);
+            Instant expiresAt = ((Timestamp) firstRow.get("expiresAt")).toInstant();
+            assertThat(expiresAt).isBetween(before.plus(7, ChronoUnit.DAYS), after.plus(7, ChronoUnit.DAYS));
+        }
+
+        @Test
+        @DisplayName("The one where the database content is read. The refresh token cannot be recovered from it.")
+        void refreshTokenCannotBeRecoveredFromTheDatabase() throws Exception {
+            String accountId = register("login5", "password123", "jack@jack.com");
+
+            String refreshToken = loginForRefreshToken("jack@jack.com", "password123");
+
+            List<Map<String, Object>> rows = jdbcTemplate.queryForList(
+                    "SELECT * FROM refresh_tokens WHERE \"accountId\" = ?",
+                    Integer.parseInt(accountId));
+
+            assertThat(rows).hasSize(1);
+            assertThat(rows.getFirst().values())
+                    .noneMatch(value -> value != null && value.toString().contains(refreshToken));
+        }
+    }
+
+    private String loginForRefreshToken(String email, String password) throws Exception {
+        String body = mockMvc.perform(post(AUTH_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"%s","password":"%s"}
+                                """.formatted(email, password)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        return JsonPath.read(body, "$.refreshToken");
     }
 
     private String register(String username, String password, String email) throws Exception {
