@@ -69,7 +69,7 @@ The last row shows that login does not check password length. A short wrong pass
 
 No token or refresh token is issued for a 403.
 
-## Rule: Must issue a JWT signed with HS256 that identifies the account and expires 30 minutes after it is issued.
+## Rule: Must issue a JWT signed with HS256 that identifies the account and expires 30 minutes after it is issued. (done)
 
 - Example: The one where login succeeds at 10:00. The JWT carries the account id as its subject and expires at 10:30.
 - Counter-example: The one where the signing secret is missing or shorter than 32 bytes. The application refuses to start.
