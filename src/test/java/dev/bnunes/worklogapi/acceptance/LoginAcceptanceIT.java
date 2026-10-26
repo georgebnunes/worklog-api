@@ -169,14 +169,17 @@ class LoginAcceptanceIT {
     }
 
     private String loginForRefreshToken(String email, String password) throws Exception {
-        String body = mockMvc.perform(post(AUTH_PATH)
+        return JsonPath.read(loginResponseBody(email, password), "$.refreshToken");
+    }
+
+    private String loginResponseBody(String email, String password) throws Exception {
+        return mockMvc.perform(post(AUTH_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"email":"%s","password":"%s"}
                                 """.formatted(email, password)))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-        return JsonPath.read(body, "$.refreshToken");
     }
 
     private String register(String username, String password, String email) throws Exception {
@@ -191,14 +194,7 @@ class LoginAcceptanceIT {
     }
 
     private String login(String email, String password) throws Exception {
-        String body = mockMvc.perform(post(AUTH_PATH)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"email":"%s","password":"%s"}
-                                """.formatted(email, password)))
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
-        return JsonPath.read(body, "$.token");
+        return JsonPath.read(loginResponseBody(email, password), "$.token");
     }
 
     private static String decode(String base64Url) {
