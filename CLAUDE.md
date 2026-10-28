@@ -35,6 +35,7 @@ No linter/formatter is configured.
 
 ### Java 25
 Records for value objects, sealed interfaces, pattern matching.
+Use non-primitive data types like Long, Integer for the domains classes.
 No Lombok - records replace it.
 
 ### REST & Spring
