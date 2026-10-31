@@ -32,11 +32,23 @@ Response `201 Created`:
 
 ## Rule: Must reject a request without a valid Bearer JWT (401).
 
-| Authorization header | Outcome |
-|----------------------|---------|
-| valid                | 201     |
-| none                 | 401     |
-| expired or tampered  | 401     |
+| Authorization header | Outcome                                   |
+|----------------------|-------------------------------------------|
+| valid                | 201                                       |
+| none                 | 401                                       |
+| tampered             | 401                                       |
+| expired              | 401, body says the session expired        |
+
+## Rule: Must answer an expired JWT with 401 and a body telling the client that the session expired.
+
+- Example: The one where the JWT signature is valid but its `exp` is in the past. The answer is 401 with this body, so the client knows to use its refresh token instead of sending the user to the login screen:
+
+```json
+{"message":"session expired"}
+```
+
+- Counter-example: The one where the JWT is tampered, malformed or missing. The answer is 401 too, but the body is never "session expired", so the client does not try a refresh for a token that can never work.
+- Nothing is saved when the JWT is expired.
 
 ## Rule: Must refuse an account that was deactivated after login (403) and save nothing.
 

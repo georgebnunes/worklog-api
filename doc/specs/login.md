@@ -77,11 +77,14 @@ No token or refresh token is issued for a 403.
 
 ## Rule: Must accept the JWT only from an `Authorization: Bearer` header on protected endpoints.
 
-| Bearer header       | Outcome                  |
-|---------------------|--------------------------|
-| valid               | request is authenticated |
-| none                | 401                      |
-| expired or tampered | 401                      |
+| Bearer header | Outcome                                        |
+|---------------|------------------------------------------------|
+| valid         | request is authenticated                       |
+| none          | 401                                            |
+| tampered      | 401                                            |
+| expired       | 401, body `{"message":"session expired"}`     |
+
+The "session expired" body is only for an expired JWT, so the client knows to use its refresh token. See `register-log.md`.
 
 An account deactivated after login keeps a working JWT, but protected endpoints still answer 403 for it, as in `register-log.md`.
 
