@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-Early-stage scaffold. Only the Spring Boot entry point (`WorklogapiApplication`) and a context-load test exist. `README.md` documents the *planned* REST API (accounts, JWT login with refresh token, work-log posts of max 140 characters, weekly summaries) — those endpoints are not implemented yet. Planned datastore is PostgreSQL, but no database/JPA/security dependencies are in `build.gradle` yet.
+Early-stage. Security is wired: this API is a stateless OAuth2 resource server that verifies JWTs issued by `bn-auth-service` through its JWKS endpoint (`adapter/in/web/security`, config under `spring.security.oauth2.resourceserver.jwt`). Accounts, login, refresh and logout live in `bn-auth-service`, not here. `README.md` documents the *planned* REST API (work-log posts of max 140 characters, weekly summaries) — those endpoints are not implemented yet. PostgreSQL, JPA and Flyway are set up; the `logs` table exists (owner = `userUUID`, the JWT `sub`).
 
 When implementing a feature, treat its spec doc as the source of truth for
 business rules — check it before inventing behavior, and flag if the code

@@ -20,29 +20,32 @@ manner, so you'll don't have to waste time building those weekly reports.
 - Gradle
 - PostgreSQL
 - Flyway (database migrations)
+- Spring Security OAuth2 resource server (JWTs issued by `bn-auth-service`)
 
 # Endpoints
 
-## Create account
-To create an account it is pretty straightforward, just pick a `username`, a `password`, an `email` and that its it.
-Of course, your password will be encrypted and the **email** is just for password recovery reasons.
+## Accounts and login
+Accounts, login, refresh tokens and logout live in **bn-auth-service**, not in this API. `worklog-api` never sees the
+private key or the passwords: it only verifies the JWT sent by the client, using the public keys that
+`bn-auth-service` publishes at `GET /.well-known/jwks.json` (`AUTH_JWKS_URI`).
 
 ```
-curl -X POST http://localhost:8080/worklog-api/v1/accounts -d '{"username":"user1", "password":"pass1234", "email":"bob@bob.com"}'
+# register and log in on bn-auth-service (port 8080); the login answer carries the access token
+curl -X POST http://localhost:8080/api/v1/auth/login -H 'Content-Type: application/json' -d '{"email":"bob@bob.com", "password":"pass1234"}'
 ```
 
-## Login
-Endpoint for login. It is all stateless, we will generate a JWT token with a refresh token.
-You log in with your `email` and `password`.
+Every endpoint of this API needs `Authorization: Bearer <access token>`. Without it, or with a tampered, refresh,
+wrong-issuer or wrong-audience token, the answer is `401`. An expired access token also answers `401`, with
+`{"message":"session expired"}`, so the client knows to use its refresh token.
 
-```
-curl -X POST http://localhost:8080/worklog-api/v1/auth -d '{"email":"bob@bob.com", "password":"pass1234"}'
-```
+Configuration (environment variables): `AUTH_JWKS_URI`, `AUTH_ISSUER` (default `bn-auth-service`),
+`AUTH_AUDIENCE` (default `bn-api`) and `AUTH_JWS_ALGORITHM` (default `RS256`, must match `jwt.algorithm` of
+bn-auth-service). Both services default to port 8080, so run this one with `SERVER_PORT=8081`.
 
 ## Register Work
 To register a log, you may call this endpoint on your client.
-The `content` field is a free text input with 140 characters maximum.
+The `content` field is a free text input with 140 characters maximum. The owner of the log is the account in the JWT.
 
 ```
-curl -X POST http://localhost:8080/worklog-api/v1/logs -d '{"userId":1, "content":"lorem ipsum dolor sit amet"}'
+curl -X POST http://localhost:8081/worklog-api/v1/logs -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{"content":"lorem ipsum dolor sit amet"}'
 ```
