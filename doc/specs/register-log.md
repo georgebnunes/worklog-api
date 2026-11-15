@@ -13,7 +13,7 @@ Request (with `Authorization: Bearer <JWT>`):
 Response `201 Created`:
 
 ```json
-{"id":1,"content":"lorem ipsum dolor sit amet","userUUID":"5f0c3c1e-8a52-4d0b-9a0e-3f6f2d9d7a11","active":true,"createdAt":"2026-10-21T21:44:44Z","updatedAt":"2026-10-21T21:44:44Z"}
+{"id":1,"content":"lorem ipsum dolor sit amet","active":true,"createdAt":"2026-10-21T21:44:44Z","updatedAt":"2026-10-21T21:44:44Z"}
 ```
 
 ## Divergences from the original story and README
@@ -26,10 +26,10 @@ Response `201 Created`:
 
 ---
 
-## Rule: Must create a log from `content` for the account in the JWT, and answer 201 with `id`, `content`, `userUUID`, `active`, `createdAt` and `updatedAt`.
+## Rule: Must create a log from `content` for the account in the JWT, and answer 201 with `id`, `content`, `active`, `createdAt` and `updatedAt`.
 
-- Example: The one where an authenticated account sends valid content. The log is saved and the response is 201 with `userUUID` equal to the JWT subject and `active` true.
-- Counter-example: The one where the body also sends `userId`, `userUUID`, `active`, `createdAt` or `updatedAt`. They are ignored and the stored values come from the JWT and the server.
+- Example: The one where an authenticated account sends valid content. The log is saved with `userUUID` equal to the JWT subject and the response is 201 with `active` true. The response does not return `userUUID`.
+- Counter-example: The one where the body also sends `userId`, `userUUID`, `active`, `createdAt` or `updatedAt`. They are ignored: the owner comes from the JWT, `active` is the database default (`true`) and the timestamps come from the server.
 
 ## Rule: Must reject a request without a valid Bearer JWT (401).
 
