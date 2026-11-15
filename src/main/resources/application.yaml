@@ -16,8 +16,20 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
-jwt:
-  secret: ${JWT_SECRET}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Public keys of bn-auth-service. Fetched lazily on the first token and cached; refetched on an unknown `kid`.
+          jwk-set-uri: ${AUTH_JWKS_URI:http://localhost:8080/.well-known/jwks.json}
+          # Together with jwk-set-uri this does NOT trigger OIDC discovery: it only validates the `iss` claim.
+          issuer-uri: ${AUTH_ISSUER:bn-auth-service}
+          audiences: ${AUTH_AUDIENCE:bn-api}
+          # Must match jwt.algorithm of bn-auth-service (RS256 or ES256).
+          jws-algorithms: ${AUTH_JWS_ALGORITHM:RS256}
+          # bn-auth-service puts roles without prefix in `roles` (["USER"]); Spring expects ROLE_USER.
+          authorities-claim-name: roles
+          authority-prefix: ROLE_
 management:
   endpoints:
     web:

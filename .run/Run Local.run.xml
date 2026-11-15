@@ -8,7 +8,8 @@
       <env name="DB_PASSWORD" value="workl0g_123" />
       <env name="DB_PORT" value="5432" />
       <env name="DB_USERNAME" value="worklog_dev" />
-      <env name="jwt.secret" value="thesupersecretjwtkeytoken1230" />
+      <env name="SERVER_PORT" value="8081" />
+      <env name="AUTH_JWKS_URI" value="http://localhost:8080/.well-known/jwks.json" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="dev.bnunes.worklogapi.WorklogapiApplication" />
     <module name="worklogapi.main" />

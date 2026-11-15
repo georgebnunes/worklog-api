@@ -13,22 +13,23 @@ Request (with `Authorization: Bearer <JWT>`):
 Response `201 Created`:
 
 ```json
-{"id":1,"content":"lorem ipsum dolor sit amet","userId":1,"active":true,"createdAt":"2026-10-21T21:44:44Z","updatedAt":"2026-10-21T21:44:44Z"}
+{"id":1,"content":"lorem ipsum dolor sit amet","userUUID":"5f0c3c1e-8a52-4d0b-9a0e-3f6f2d9d7a11","active":true,"createdAt":"2026-10-21T21:44:44Z","updatedAt":"2026-10-21T21:44:44Z"}
 ```
 
 ## Divergences from the original story and README
 
 - The maximum `content` length is 140 characters (the story said 150; the README says 140).
-- The README curl sends `userId` in the body. The owner now comes only from the JWT, and a `userId` in the body is ignored.
+- The README curl sends `userId` in the body. The owner now comes only from the JWT, and a `userId` (or `userUUID`) in the body is ignored.
+- The owner is identified by `userUUID`, a string holding the JWT `sub` claim (a UUID issued by bn-auth-service), not by an integer `userId`. `worklog-api` has no accounts table: accounts live in bn-auth-service.
 - `createdAt` and `updatedAt` are UTC with a trailing `Z` (the sample had no zone).
 - `id` is an INTEGER from a Postgres sequence, following the project convention, not a long integer.
 
 ---
 
-## Rule: Must create a log from `content` for the account in the JWT, and answer 201 with `id`, `content`, `userId`, `active`, `createdAt` and `updatedAt`.
+## Rule: Must create a log from `content` for the account in the JWT, and answer 201 with `id`, `content`, `userUUID`, `active`, `createdAt` and `updatedAt`.
 
-- Example: The one where an authenticated account sends valid content. The log is saved and the response is 201 with `userId` equal to the JWT subject and `active` true.
-- Counter-example: The one where the body also sends `userId`, `active`, `createdAt` or `updatedAt`. They are ignored and the stored values come from the JWT and the server.
+- Example: The one where an authenticated account sends valid content. The log is saved and the response is 201 with `userUUID` equal to the JWT subject and `active` true.
+- Counter-example: The one where the body also sends `userId`, `userUUID`, `active`, `createdAt` or `updatedAt`. They are ignored and the stored values come from the JWT and the server.
 
 ## Rule: Must reject a request without a valid Bearer JWT (401).
 
@@ -81,7 +82,7 @@ The length limit applies after trimming and counts characters, not bytes.
 
 - Example: The one where the Flyway migration runs. The table has these columns:
   - `id`: integer primary key from a Postgres sequence.
-  - `userId`: integer, not null, references `accounts.id`.
+  - `userUUID`: varchar(180), not null, the JWT `sub` claim. It replaced the original integer `userId` in migration `V2`.
   - `content`: varchar(140), not null.
   - `createdAt` and `updatedAt`: timestamps with timezone, defaulting to the current server time on insert.
   - `active`: boolean, defaults to `true`.
