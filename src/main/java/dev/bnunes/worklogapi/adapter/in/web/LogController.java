@@ -1,6 +1,7 @@
 package dev.bnunes.worklogapi.adapter.in.web;
 
 import dev.bnunes.worklogapi.application.port.in.RegisterLogUseCase;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,7 +24,7 @@ class LogController {
     /** The principal's name is the JWT {@code sub} claim, the account that owns the log. */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    LogResponse register(@RequestBody RegisterLogRequest request, Principal principal) {
+    LogResponse register(@Valid @RequestBody RegisterLogRequest request, Principal principal) {
         return LogResponse.from(registerLog.register(principal.getName(), request.content()));
     }
 }
