@@ -1,4 +1,1 @@
 rootProject.name = 'worklogapi'
-
-include 'acceptance'
-include 'acceptance'
