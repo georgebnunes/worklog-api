@@ -64,7 +64,7 @@ Response `201 Created`:
 | `"   "` (spaces only)             | 400                   |
 | 1 character                       | 201                   |
 | 140 characters                    | 201                   |
-| 141 characters                    | 400                   |
+| 141 characters                    | 400, body `{"timestamp":"2026-10-21T21:44:44Z","status":400,"error":"Bad Request","message":"Max characters allowed 140.","path":"/worklog-api/v1/logs"}` |
 | `"  done  "` (surrounding spaces) | 201, stored as `done` |
 
 The length limit applies after trimming and counts characters, not bytes.
