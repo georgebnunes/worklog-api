@@ -125,6 +125,56 @@ class RegisterLogAcceptanceIT {
         }
     }
 
+    @Nested
+    @DisplayName("Must trim `content`, then reject it when missing, empty, or longer than 140 characters (400).")
+    class ValidateContent {
+
+        @Test
+        @DisplayName("The one where `content` is missing. The answer is 400 and nothing is saved.")
+        void contentIsMissing() throws Exception {
+            String subject = UUID.randomUUID().toString();
+
+            mockMvc.perform(post(LOGS_PATH)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenFor(subject))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{}"))
+                    .andExpect(status().isBadRequest());
+
+            assertThat(jdbcTemplate.queryForList(
+                    "SELECT 1 FROM logs WHERE \"userUUID\" = ?", subject)).isEmpty();
+        }
+
+        @Test
+        @DisplayName("The one where `content` is only spaces (`\"   \"`). The answer is 400 and nothing is saved.")
+        void contentIsOnlySpaces() throws Exception {
+            String subject = UUID.randomUUID().toString();
+
+            mockMvc.perform(post(LOGS_PATH)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenFor(subject))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"content\":\"   \"}"))
+                    .andExpect(status().isBadRequest());
+
+            assertThat(jdbcTemplate.queryForList(
+                    "SELECT 1 FROM logs WHERE \"userUUID\" = ?", subject)).isEmpty();
+        }
+
+        @Test
+        @DisplayName("The one where `content` has 141 characters. The answer is 400 and nothing is saved.")
+        void contentHas141Characters() throws Exception {
+            String subject = UUID.randomUUID().toString();
+
+            mockMvc.perform(post(LOGS_PATH)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenFor(subject))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"content\":\"" + "a".repeat(141) + "\"}"))
+                    .andExpect(status().isBadRequest());
+
+            assertThat(jdbcTemplate.queryForList(
+                    "SELECT 1 FROM logs WHERE \"userUUID\" = ?", subject)).isEmpty();
+        }
+    }
+
     private static String tokenFor(String subject) {
         return AUTH_SERVER.accessTokenWith(claims -> claims.subject(subject));
     }
