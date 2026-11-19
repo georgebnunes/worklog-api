@@ -160,15 +160,25 @@ class RegisterLogAcceptanceIT {
         }
 
         @Test
-        @DisplayName("The one where `content` has 141 characters. The answer is 400 and nothing is saved.")
+        @DisplayName("The one where `content` has 141 characters. The answer is 400 with the message "
+                + "`Max characters allowed 140.` and nothing is saved.")
         void contentHas141Characters() throws Exception {
             String subject = UUID.randomUUID().toString();
 
-            mockMvc.perform(post(LOGS_PATH)
+            String body = mockMvc.perform(post(LOGS_PATH)
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenFor(subject))
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"content\":\"" + "a".repeat(141) + "\"}"))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isBadRequest())
+                    .andReturn().getResponse().getContentAsString();
+
+            assertThat(JsonPath.<Map<String, Object>>read(body, "$").keySet())
+                    .containsExactlyInAnyOrder("timestamp", "status", "error", "message", "path");
+            assertThat(JsonPath.<Integer>read(body, "$.status")).isEqualTo(400);
+            assertThat(JsonPath.<String>read(body, "$.error")).isEqualTo("Bad Request");
+            assertThat(JsonPath.<String>read(body, "$.message")).isEqualTo("Max characters allowed 140.");
+            assertThat(JsonPath.<String>read(body, "$.path")).isEqualTo(LOGS_PATH);
+            assertUtcInstantNearNow(JsonPath.read(body, "$.timestamp"));
 
             assertThat(jdbcTemplate.queryForList(
                     "SELECT 1 FROM logs WHERE \"userUUID\" = ?", subject)).isEmpty();
