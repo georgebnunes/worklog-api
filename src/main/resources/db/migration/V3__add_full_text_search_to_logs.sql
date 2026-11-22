@@ -4,5 +4,3 @@
 ALTER TABLE logs
     ADD COLUMN "contentSearch" TSVECTOR
         GENERATED ALWAYS AS (to_tsvector('english', content)) STORED;
-
-CREATE INDEX logs_content_search_idx ON logs USING GIN ("contentSearch");
