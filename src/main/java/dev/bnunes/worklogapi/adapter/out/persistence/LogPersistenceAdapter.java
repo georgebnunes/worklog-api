@@ -4,6 +4,8 @@ import dev.bnunes.worklogapi.application.port.out.LogRepository;
 import dev.bnunes.worklogapi.domain.model.Log;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 class LogPersistenceAdapter implements LogRepository {
 
@@ -17,5 +19,10 @@ class LogPersistenceAdapter implements LogRepository {
     public Log save(Log log) {
         // Flush so the values the database assigns on insert (active, createdAt, updatedAt) are read back.
         return logJpaRepository.saveAndFlush(new LogEntity(log.userUUID(), log.content())).toDomain();
+    }
+
+    @Override
+    public List<Log> findActiveByUser(String userUUID) {
+        return logJpaRepository.findByUserUUIDAndActiveTrue(userUUID).stream().map(LogEntity::toDomain).toList();
     }
 }
